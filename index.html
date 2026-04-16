@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marcos Kanagawa - Treino</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background: hsl(35, 30%, 94%);
+            --foreground: hsl(0, 0%, 15%);
+            --card: hsl(35, 25%, 97%);
+            --card-foreground: hsl(0, 0%, 15%);
+            --primary: hsl(0, 100%, 40%);
+            --primary-foreground: hsl(0, 0%, 100%);
+            --secondary: hsl(350, 60%, 92%);
+            --secondary-foreground: hsl(0, 0%, 15%);
+            --accent: hsl(350, 70%, 75%);
+            --accent-foreground: hsl(0, 0%, 15%);
+            --muted: hsl(35, 20%, 90%);
+            --muted-foreground: hsl(0, 0%, 40%);
+            --border: hsl(35, 20%, 85%);
+            --radius: 0.75rem;
+            --shadow-card: 0 2px 12px -2px hsl(0 0% 0% / 0.06);
+        }
+
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: var(--background); 
+            color: var(--foreground);
+            overscroll-behavior-y: contain;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        h1, h2, h3, .font-montserrat { font-family: 'Montserrat', sans-serif; }
+
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background-color: hsla(35, 30%, 94%, 0.9);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo-icon {
+            width: 2.2rem; height: 2.2rem;
+            background-color: var(--primary);
+            border-radius: 0.5rem;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 700;
+        }
+
+        .tab-btn {
+            position: relative;
+            color: var(--muted-foreground);
+            font-weight: 600; font-size: 0.85rem;
+            padding-bottom: 0.75rem;
+            transition: color 0.2s;
+        }
+
+        .tab-btn.active { color: var(--primary); }
+        .tab-btn.active::after {
+            content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
+            height: 2px; background-color: var(--primary);
+        }
+
+        .card-biset {
+            background-color: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .img-wrapper {
+            width: 75px; height: 75px;
+            flex-shrink: 0;
+            border-radius: 0.5rem;
+            background: var(--muted);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .exercise-img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .exercise-item {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .exercise-item.is-done { 
+            opacity: 0.4;
+        }
+        .exercise-item.is-done .img-wrapper {
+            filter: grayscale(100%);
+        }
+        .exercise-item.is-done h4 { 
+            text-decoration: line-through; 
+            color: var(--muted-foreground); 
+        }
+
+        .check-box {
+            width: 1.6rem; height: 1.6rem;
+            border: 2px solid var(--border);
+            border-radius: 0.5rem;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .check-box.checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .badge-base {
+            font-size: 10px; background-color: var(--secondary);
+            color: var(--primary); padding: 2px 8px;
+            border-radius: 999px; font-weight: 700;
+        }
+
+        .tab-btn { white-space: nowrap; }
+
+        .emoji-wrapper {
+            width: 75px; height: 75px;
+            flex-shrink: 0;
+            border-radius: 0.5rem;
+            background: var(--muted);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.2rem;
+            border: 1px solid var(--border);
+        }
+
+        .macro-pill {
+            display: inline-flex; align-items: center; gap: 3px;
+            font-size: 10px; font-weight: 700;
+            padding: 2px 7px; border-radius: 999px;
+            background: var(--muted); color: var(--muted-foreground);
+        }
+        .macro-pill strong { color: var(--foreground); font-weight: 800; }
+
+        .macro-summary {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+        }
+        .macro-summary > div {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.25rem;
+            text-align: center;
+        }
+        .macro-summary .macro-value {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800; font-size: 0.95rem;
+            color: var(--foreground);
+            line-height: 1;
+        }
+        .macro-summary .macro-label {
+            font-size: 9px; font-weight: 700;
+            color: var(--muted-foreground);
+            text-transform: uppercase; letter-spacing: 0.05em;
+            margin-top: 2px;
+        }
+
+        .water-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.6rem;
+        }
+        .water-drop {
+            aspect-ratio: 1/1;
+            border-radius: 0.75rem;
+            background: var(--muted);
+            border: 1.5px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            filter: grayscale(100%);
+            opacity: 0.45;
+        }
+        .water-drop.filled {
+            background: hsl(200, 85%, 92%);
+            border-color: hsl(200, 70%, 65%);
+            filter: none;
+            opacity: 1;
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body class="pb-36">
+
+    <header class="header px-6 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="logo-icon">大</div>
+                <div>
+                    <h1 class="text-sm font-bold tracking-widest uppercase leading-none">Kanagawa</h1>
+                    <p class="text-[10px] text-slate-500 font-medium">Controle Diário</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-between mt-6 gap-3">
+            <button onclick="switchTab('A')" id="btn-A" class="tab-btn active">A</button>
+            <button onclick="switchTab('B')" id="btn-B" class="tab-btn">B</button>
+            <button onclick="switchTab('C')" id="btn-C" class="tab-btn">C</button>
+            <button onclick="switchTab('DIETA')" id="btn-DIETA" class="tab-btn">DIETA</button>
+            <button onclick="switchTab('AGUA')" id="btn-AGUA" class="tab-btn">ÁGUA</button>
+        </div>
+    </header>
+
+    <main id="content" class="p-4 space-y-6">
+        <!-- Injetado via JS -->
+    </main>
+
+    <div class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md p-6 border-t border-slate-200 z-50">
+        <div class="flex justify-between items-center mb-3">
+            <div>
+                <span id="progress-text" class="text-xs font-black text-slate-800 uppercase tracking-tight text-lg">0/8</span>
+                <span id="progress-label" class="text-[10px] text-slate-400 uppercase ml-1 font-bold">finalizados</span>
+            </div>
+            <button onclick="resetDaily()" class="text-[10px] font-extrabold text-red-600 border border-red-100 px-3 py-1 rounded-full bg-red-50 uppercase">Reiniciar Dia</button>
+        </div>
+        <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+            <div id="progress-bar" class="bg-red-600 h-full transition-all duration-700 ease-out shadow-[0_0_15px_rgba(220,38,38,0.4)]" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <script>
+        // CDN ImageKit mapeado para o repositório yuhonas
+        const repoBase = "https://ik.imagekit.io/yuhonas/";
+
+        const workoutData = {
+            'A': {
+                title: "Peito & Puxada",
+                subtitle: "Superior & Grip BJJ",
+                bisets: [
+                    { id: 'a1', note: "Base: Banco Inclinado", exercises: [{ name: "Supino Inclinado", db: "Incline_Dumbbell_Press", reps: "3x 12" }, { name: "Remada Unilateral", db: "One-Arm_Dumbbell_Row", reps: "3x 12" }] },
+                    { id: 'a2', note: "Base: Banco Reto", exercises: [{ name: "Crucifixo Reto", db: "Dumbbell_Flyes", reps: "3x 15" }, { name: "Remada Curvada", db: "Bent_Over_Two-Dumbbell_Row", reps: "3x 12" }] },
+                    { id: 'a3', note: "Base: Em Pé", exercises: [{ name: "Elevação Lateral", db: "Side_Lateral_Raise", reps: "3x 15" }, { name: "Rosca Martelo", db: "Hammer_Curls", reps: "3x 12" }] },
+                    { id: 'a4', note: "Finalizador", exercises: [{ name: "Squeeze Press", db: "Dumbbell_Bench_Press", reps: "3x 12" }, { name: "Posterior de Ombro", db: "Reverse_Flyes", reps: "3x 15" }] }
+                ]
+            },
+            'B': {
+                title: "Ombro & Base",
+                subtitle: "Deltoide & Muay Thai",
+                bisets: [
+                    { id: 'b1', note: "Base: Banco 90º", exercises: [{ name: "Desenvolvimento", db: "Dumbbell_Shoulder_Press", reps: "3x 10" }, { name: "Passada com Peso", db: "Dumbbell_Lunges", reps: "3x 10/perna" }] },
+                    { id: 'b2', note: "Base: Espaço Livre", exercises: [{ name: "Elevação Lateral", db: "Side_Lateral_Raise", reps: "4x 15" }, { name: "Stiff", db: "Stiff-Legged_Dumbbell_Deadlift", reps: "3x 12" }] },
+                    { id: 'b3', note: "Estabilidade", exercises: [{ name: "Encolhimento", db: "Dumbbell_Shrug", reps: "3x 15" }, { name: "Prancha Abdominal", db: "Plank", reps: "3x 45s" }] },
+                    { id: 'b4', note: "Linha de Frente", exercises: [{ name: "Elevação Frontal", db: "Front_Dumbbell_Raise", reps: "3x 12" }, { name: "Panturrilha", db: "Standing_Dumbbell_Calf_Raise", reps: "4x 15" }] }
+                ]
+            },
+            'C': {
+                title: "Híbrido",
+                subtitle: "Volume & Articulação",
+                bisets: [
+                    { id: 'c1', note: "Base: Banco Reto", exercises: [{ name: "Supino Reto", db: "Dumbbell_Bench_Press", reps: "3x 10" }, { name: "Pullover", db: "Straight-Arm_Dumbbell_Pullover", reps: "3x 12" }] },
+                    { id: 'c2', note: "Resistência", exercises: [{ name: "Flexão de Braço", db: "Pushups", reps: "3x Falha" }, { name: "Elevação Lateral", db: "Side_Lateral_Raise", reps: "3x 15" }] },
+                    { id: 'c3', note: "Saúde Ombro", exercises: [{ name: "Manguito Rotador", db: "External_Rotation", reps: "2x 20" }, { name: "Abdominal Infra", db: "Flat_Bench_Lying_Leg_Raise", reps: "3x 15" }] },
+                    { id: 'c4', note: "Funcional Luta", exercises: [{ name: "Mergulho (Dips)", db: "Bench_Dips", reps: "3x 12" }, { name: "Farmer's Walk", db: "Farmers_Walk", reps: "3x 1min" }] }
+                ]
+            }
+        };
+
+        let currentTab = 'A';
+        let completed = JSON.parse(localStorage.getItem('kanagawa_vfinal_v7') || '{}');
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${tab}`).classList.add('active');
+            render();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggle(id) {
+            completed[id] = !completed[id];
+            localStorage.setItem('kanagawa_vfinal_v7', JSON.stringify(completed));
+            
+            const el = document.getElementById(id);
+            if (!el) return;
+
+            const checkbox = el.querySelector('.check-box');
+            if (completed[id]) {
+                el.classList.add('is-done');
+                checkbox.classList.add('checked');
+                checkbox.innerHTML = '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg>';
+            } else {
+                el.classList.remove('is-done');
+                checkbox.classList.remove('checked');
+                checkbox.innerHTML = '';
+            }
+            updateStats();
+        }
+
+        function updateStats() {
+            const data = workoutData[currentTab];
+            let total = 0, done = 0;
+            data.bisets.forEach(b => {
+                b.exercises.forEach((ex, idx) => {
+                    total++;
+                    if (completed[`${currentTab}-${b.id}-${idx}`]) done++;
+                });
+            });
+            const pct = (done / total) * 100;
+            document.getElementById('progress-text').innerText = `${done}/${total}`;
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+        }
+
+        function resetDaily() {
+            if (confirm("Resetar progresso deste treino?")) {
+                completed = {};
+                localStorage.removeItem('kanagawa_vfinal_v7');
+                render();
+            }
+        }
+
+        function render() {
+            const main = document.getElementById('content');
+            const data = workoutData[currentTab];
+            let html = `<div class="mb-2 px-1">
+                <h2 class="text-2xl font-black uppercase tracking-tighter">${data.title}</h2>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${data.subtitle}</p>
+            </div>`;
+
+            data.bisets.forEach(biset => {
+                html += `
+                <section class="card-biset mb-4 shadow-sm">
+                    <div class="px-5 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Bloco Bi-Set</span>
+                        <span class="badge-base">${biset.note}</span>
+                    </div>
+                    <div class="p-1">
+                        ${biset.exercises.map((ex, idx) => {
+                            const exId = `${currentTab}-${biset.id}-${idx}`;
+                            const isDone = completed[exId];
+                            const imgUrl = `${repoBase}${ex.db}/0.jpg`;
+                            
+                            return `
+                            <div id="${exId}" onclick="toggle('${exId}')" class="exercise-item ${isDone ? 'is-done' : ''}">
+                                <div class="img-wrapper shadow-inner">
+                                    <img src="${imgUrl}" 
+                                         class="exercise-img" 
+                                         loading="eager"
+                                         onerror="this.src='https://via.placeholder.com/200?text=Exercicio'">
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="font-bold text-sm text-slate-800 leading-tight mb-1">${ex.name}</h4>
+                                    <span class="text-[10px] font-black text-red-600 uppercase border border-red-100 px-1.5 py-0.5 rounded bg-red-50/50">${ex.reps}</span>
+                                </div>
+                                <div class="check-box ${isDone ? 'checked' : ''}">
+                                    ${isDone ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg>' : ''}
+                                </div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </section>`;
+            });
+
+            main.innerHTML = html;
+            updateStats();
+        }
+
+        window.onload = render;
+    </script>
+</body>
+</html>

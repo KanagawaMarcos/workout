@@ -241,6 +241,43 @@
         // CDN ImageKit mapeado para o repositório yuhonas
         const repoBase = "https://ik.imagekit.io/yuhonas/";
 
+        const dietData = {
+            title: "Dieta do Dia",
+            subtitle: "1.405 kcal · Déficit Agressivo",
+            targets: { p: 170, g: 45, c: 80, kcal: 1405 },
+            meals: [
+                {
+                    id: 'breakfast', emoji: '🍳', name: 'Café da Manhã', time: '07:00',
+                    items: ['2 ovos inteiros mexidos', '3 claras', 'Café preto (s/ açúcar)'],
+                    macros: { p: 21, g: 10, c: 1, kcal: 178 }
+                },
+                {
+                    id: 'lunch', emoji: '🍗', name: 'Almoço', time: '12:30',
+                    items: ['200g frango ou peixe grelhado', '80g arroz cozido', '1 concha pequena de feijão', 'Salada à vontade'],
+                    macros: { p: 65, g: 8, c: 35, kcal: 472 }
+                },
+                {
+                    id: 'snack', emoji: '🥛', name: 'Lanche da Tarde', time: '16:00',
+                    items: ['1 whey OU 150g iogurte grego zero', '100g mamão ou melão'],
+                    macros: { p: 25, g: 2, c: 15, kcal: 178 }
+                },
+                {
+                    id: 'dinner', emoji: '🐟', name: 'Jantar', time: '20:00',
+                    items: ['200g peixe ou frango', 'Abobrinha/brócolis/repolho refogado à vontade', '70g arroz OU 100g batata doce'],
+                    macros: { p: 60, g: 15, c: 28, kcal: 487 }
+                }
+            ]
+        };
+
+        const waterData = {
+            title: "Hidratação",
+            subtitle: "Meta: 4L · 2L manhã + 2L tarde",
+            slots: [
+                { key: 'm', period: 'Manhã', icon: '☀️', count: 4, sizeML: 500, goal: 2000 },
+                { key: 't', period: 'Tarde / Noite', icon: '🌙', count: 4, sizeML: 500, goal: 2000 }
+            ]
+        };
+
         const workoutData = {
             'A': {
                 title: "Peito & Puxada",
@@ -288,47 +325,57 @@
         function toggle(id) {
             completed[id] = !completed[id];
             localStorage.setItem('kanagawa_vfinal_v7', JSON.stringify(completed));
-            
-            const el = document.getElementById(id);
-            if (!el) return;
-
-            const checkbox = el.querySelector('.check-box');
-            if (completed[id]) {
-                el.classList.add('is-done');
-                checkbox.classList.add('checked');
-                checkbox.innerHTML = '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg>';
-            } else {
-                el.classList.remove('is-done');
-                checkbox.classList.remove('checked');
-                checkbox.innerHTML = '';
-            }
-            updateStats();
+            render();
         }
 
         function updateStats() {
-            const data = workoutData[currentTab];
-            let total = 0, done = 0;
-            data.bisets.forEach(b => {
-                b.exercises.forEach((ex, idx) => {
-                    total++;
-                    if (completed[`${currentTab}-${b.id}-${idx}`]) done++;
+            const pText = document.getElementById('progress-text');
+            const pLabel = document.getElementById('progress-label');
+            const pBar = document.getElementById('progress-bar');
+
+            if (currentTab === 'DIETA') {
+                const total = dietData.meals.length;
+                const done = dietData.meals.filter(m => completed[`diet-${m.id}`]).length;
+                pText.innerText = `${done}/${total}`;
+                pLabel.innerText = 'refeições';
+                pBar.style.width = `${(done / total) * 100}%`;
+            } else if (currentTab === 'AGUA') {
+                let total = 0, done = 0, ml = 0;
+                waterData.slots.forEach(s => {
+                    for (let i = 0; i < s.count; i++) {
+                        total++;
+                        if (completed[`water-${s.key}-${i}`]) { done++; ml += s.sizeML; }
+                    }
                 });
-            });
-            const pct = (done / total) * 100;
-            document.getElementById('progress-text').innerText = `${done}/${total}`;
-            document.getElementById('progress-bar').style.width = `${pct}%`;
+                pText.innerText = `${(ml / 1000).toFixed(1)}L / 4L`;
+                pLabel.innerText = 'hidratação';
+                pBar.style.width = `${(done / total) * 100}%`;
+            } else {
+                const data = workoutData[currentTab];
+                let total = 0, done = 0;
+                data.bisets.forEach(b => {
+                    b.exercises.forEach((ex, idx) => {
+                        total++;
+                        if (completed[`${currentTab}-${b.id}-${idx}`]) done++;
+                    });
+                });
+                pText.innerText = `${done}/${total}`;
+                pLabel.innerText = 'finalizados';
+                pBar.style.width = `${(done / total) * 100}%`;
+            }
         }
 
         function resetDaily() {
-            if (confirm("Resetar progresso deste treino?")) {
+            if (confirm("Resetar progresso do dia (treino + dieta + água)?")) {
                 completed = {};
                 localStorage.removeItem('kanagawa_vfinal_v7');
                 render();
             }
         }
 
-        function render() {
-            const main = document.getElementById('content');
+        const CHECK_SVG = '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg>';
+
+        function renderWorkout(main) {
             const data = workoutData[currentTab];
             let html = `<div class="mb-2 px-1">
                 <h2 class="text-2xl font-black uppercase tracking-tighter">${data.title}</h2>
@@ -347,22 +394,17 @@
                             const exId = `${currentTab}-${biset.id}-${idx}`;
                             const isDone = completed[exId];
                             const imgUrl = `${repoBase}${ex.db}/0.jpg`;
-                            
                             return `
                             <div id="${exId}" onclick="toggle('${exId}')" class="exercise-item ${isDone ? 'is-done' : ''}">
                                 <div class="img-wrapper shadow-inner">
-                                    <img src="${imgUrl}" 
-                                         class="exercise-img" 
-                                         loading="eager"
+                                    <img src="${imgUrl}" class="exercise-img" loading="eager"
                                          onerror="this.src='https://via.placeholder.com/200?text=Exercicio'">
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <h4 class="font-bold text-sm text-slate-800 leading-tight mb-1">${ex.name}</h4>
                                     <span class="text-[10px] font-black text-red-600 uppercase border border-red-100 px-1.5 py-0.5 rounded bg-red-50/50">${ex.reps}</span>
                                 </div>
-                                <div class="check-box ${isDone ? 'checked' : ''}">
-                                    ${isDone ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg>' : ''}
-                                </div>
+                                <div class="check-box ${isDone ? 'checked' : ''}">${isDone ? CHECK_SVG : ''}</div>
                             </div>`;
                         }).join('')}
                     </div>
@@ -370,6 +412,112 @@
             });
 
             main.innerHTML = html;
+        }
+
+        function renderDiet(main) {
+            const totals = { p: 0, g: 0, c: 0, kcal: 0 };
+            dietData.meals.forEach(m => {
+                if (completed[`diet-${m.id}`]) {
+                    totals.p += m.macros.p;
+                    totals.g += m.macros.g;
+                    totals.c += m.macros.c;
+                    totals.kcal += m.macros.kcal;
+                }
+            });
+
+            const { targets } = dietData;
+            let html = `<div class="mb-2 px-1">
+                <h2 class="text-2xl font-black uppercase tracking-tighter">${dietData.title}</h2>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${dietData.subtitle}</p>
+            </div>
+
+            <div class="macro-summary mb-4">
+                <div>
+                    <div class="macro-value">${totals.kcal}<span class="text-[10px] text-slate-400">/${targets.kcal}</span></div>
+                    <div class="macro-label">kcal</div>
+                </div>
+                <div>
+                    <div class="macro-value">${totals.p}<span class="text-[10px] text-slate-400">/${targets.p}g</span></div>
+                    <div class="macro-label">Proteína</div>
+                </div>
+                <div>
+                    <div class="macro-value">${totals.g}<span class="text-[10px] text-slate-400">/${targets.g}g</span></div>
+                    <div class="macro-label">Gordura</div>
+                </div>
+                <div>
+                    <div class="macro-value">${totals.c}<span class="text-[10px] text-slate-400">/${targets.c}g</span></div>
+                    <div class="macro-label">Carbo</div>
+                </div>
+            </div>`;
+
+            dietData.meals.forEach(meal => {
+                const mealId = `diet-${meal.id}`;
+                const isDone = completed[mealId];
+                html += `
+                <section class="card-biset mb-4 shadow-sm">
+                    <div class="px-5 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">${meal.time}</span>
+                        <span class="badge-base">${meal.macros.kcal} kcal</span>
+                    </div>
+                    <div class="p-1">
+                        <div id="${mealId}" onclick="toggle('${mealId}')" class="exercise-item ${isDone ? 'is-done' : ''}">
+                            <div class="emoji-wrapper shadow-inner">${meal.emoji}</div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-bold text-sm text-slate-800 leading-tight mb-1">${meal.name}</h4>
+                                <p class="text-[11px] text-slate-500 leading-snug mb-2">${meal.items.join(' · ')}</p>
+                                <div class="flex flex-wrap gap-1">
+                                    <span class="macro-pill"><strong>${meal.macros.p}g</strong> P</span>
+                                    <span class="macro-pill"><strong>${meal.macros.g}g</strong> G</span>
+                                    <span class="macro-pill"><strong>${meal.macros.c}g</strong> C</span>
+                                </div>
+                            </div>
+                            <div class="check-box ${isDone ? 'checked' : ''}">${isDone ? CHECK_SVG : ''}</div>
+                        </div>
+                    </div>
+                </section>`;
+            });
+
+            main.innerHTML = html;
+        }
+
+        function renderWater(main) {
+            let html = `<div class="mb-2 px-1">
+                <h2 class="text-2xl font-black uppercase tracking-tighter">${waterData.title}</h2>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${waterData.subtitle}</p>
+            </div>`;
+
+            waterData.slots.forEach(slot => {
+                let doneInSlot = 0;
+                let grid = '';
+                for (let i = 0; i < slot.count; i++) {
+                    const id = `water-${slot.key}-${i}`;
+                    const filled = completed[id];
+                    if (filled) doneInSlot++;
+                    grid += `<div id="${id}" onclick="toggle('${id}')" class="water-drop ${filled ? 'filled' : ''}">💧</div>`;
+                }
+                const ml = doneInSlot * slot.sizeML;
+
+                html += `
+                <section class="card-biset mb-4 shadow-sm">
+                    <div class="px-5 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                        <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest">${slot.icon} ${slot.period}</span>
+                        <span class="badge-base">${(ml / 1000).toFixed(1)}L / ${(slot.goal / 1000)}L</span>
+                    </div>
+                    <div class="p-4">
+                        <div class="water-grid">${grid}</div>
+                        <p class="text-[10px] text-slate-400 text-center mt-3 font-semibold uppercase tracking-wider">${slot.count}× ${slot.sizeML}ml</p>
+                    </div>
+                </section>`;
+            });
+
+            main.innerHTML = html;
+        }
+
+        function render() {
+            const main = document.getElementById('content');
+            if (currentTab === 'DIETA') renderDiet(main);
+            else if (currentTab === 'AGUA') renderWater(main);
+            else renderWorkout(main);
             updateStats();
         }
 
